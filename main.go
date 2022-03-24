@@ -1,18 +1,25 @@
 package main
 
 import (
+	"context"
+	"fmt"
 	"io"
 	"log"
+	"net/http"
 	"os"
 	"path/filepath"
+	"strconv"
+	"time"
 
+	"firebase.google.com/go/messaging"
 	helmet "github.com/danielkov/gin-helmet"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
+	bolt "go.etcd.io/bbolt"
 )
 
-const DEBUG_MODE = true
+const DEBUG_MODE = false
 const SESSION_NAME = "mysession"
 const LOG_DIR = "logs" // used on running docker
 const LOG_GIN_FILE = "gin.log"
@@ -111,56 +118,63 @@ func main() {
 	r.POST("/refreshToken", HandleRefreshToken)
 	r.POST("/setTraining", HandleSetTraining)
 
-	// r.GET("/test1", func(c *gin.Context) {
-	// 	deviceId := c.Query("deviceId")
-	// 	if err := sendPracticeNotification(deviceId, 0, 0); err != nil {
-	// 		fmt.Printf("%v", err)
-	// 	} else {
-	// 		println("sent prac noti")
-	// 	}
-	// })
-	// r.GET("/test2", func(c *gin.Context) {
-	// 	deviceId := c.Query("deviceId")
-	// 	if err := sendTestNotification(deviceId, 0); err != nil {
-	// 		fmt.Printf("%v", err)
-	// 	} else {
-	// 		println("sent test noti")
-	// 	}
-	// })
-	// r.GET("/test3", func(c *gin.Context) {
-	// 	// time.Sleep(3 * time.Second)
+	// test functions for debugging
+	if DEBUG_MODE {
+		r.GET("/test1", func(c *gin.Context) {
+			time.Sleep(10 * time.Second)
 
-	// 	token := c.Query("token")
+			deviceId := c.Query("deviceId")
+			dailyIndex, _ := strconv.Atoi(c.Query("dailyIndex"))
+			if err := sendPracticeNotification(deviceId, 0, dailyIndex); err != nil {
+				fmt.Printf("%v", err)
+			} else {
+				println("sent prac noti")
+			}
+		})
+		r.GET("/test2", func(c *gin.Context) {
+			deviceId := c.Query("deviceId")
+			if err := sendTestNotification(deviceId, 0); err != nil {
+				fmt.Printf("%v", err)
+			} else {
+				println("sent test noti")
+			}
+		})
+		r.GET("/test3", func(c *gin.Context) {
+			// time.Sleep(3 * time.Second)
 
-	// 	// Create payload
-	// 	data := map[string]string{
-	// 		"task":       TASK_TEST,
-	// 		"trainingId": "2",
-	// 	}
+			token := c.Query("token")
 
-	// 	// send
-	// 	_, err := fcmClient.Send(context.TODO(), &messaging.Message{
-	// 		Data:  data,
-	// 		Token: token,
-	// 		// Notification: &messaging.Notification{Title: "ttttil"},
-	// 	})
-	// 	if err != nil {
-	// 		fmt.Printf("%v", err)
-	// 		c.String(http.StatusInternalServerError, fmt.Sprintf("%v", err))
-	// 	} else {
-	// 		fmt.Println("sent")
-	// 	}
-	// })
-	// r.GET("/test4", func(c *gin.Context) {
-	// 	db.View(func(t *bolt.Tx) error {
-	// 		devices := t.Bucket(BUCKET_DEVICES)
-	// 		devices.ForEach(func(k, v []byte) error {
-	// 			fmt.Printf("%s %s\n", k, v)
-	// 			return nil
-	// 		})
-	// 		return nil
-	// 	})
-	// })
+			// Create payload
+			data := map[string]string{
+				"task":       TASK_TEST,
+				"trainingId": "2",
+			}
+
+			// send
+			_, err := fcmClient.Send(context.TODO(), &messaging.Message{
+				Data:  data,
+				Token: token,
+				// Notification: &messaging.Notification{Title: "ttttil"},
+			})
+			if err != nil {
+				fmt.Printf("%v", err)
+				c.String(http.StatusInternalServerError, fmt.Sprintf("%v", err))
+			} else {
+				fmt.Println("sent")
+			}
+		})
+
+		r.GET("/test4", func(c *gin.Context) {
+			db.View(func(t *bolt.Tx) error {
+				devices := t.Bucket(BUCKET_DEVICES)
+				devices.ForEach(func(k, v []byte) error {
+					fmt.Printf("%s %s\n", k, v)
+					return nil
+				})
+				return nil
+			})
+		})
+	}
 
 	r.Run()
 }
