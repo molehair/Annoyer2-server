@@ -14,5 +14,5 @@ RUN apk --no-cache add ca-certificates
 COPY service-account.json .
 COPY --from=builder /go/bin/app /app
 ENTRYPOINT /app
-LABEL Name=annoyer2server Version=0.0.1
+LABEL Name=annoyer2server
 EXPOSE 8080
