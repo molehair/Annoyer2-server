@@ -25,6 +25,7 @@ The server will listen on port 8080.
 
 #### Without docker
 
+1. Install [Go](https://go.dev/).
 1. Create `config` directory on the root of project.
 2. Put `service-account.json` into `config`.
 3. Run
