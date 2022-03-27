@@ -12,7 +12,7 @@ var fcmClient *messaging.Client
 
 func InitializeFirebase() error {
 	// firebase
-	opts := []option.ClientOption{option.WithCredentialsFile("service-account.json")}
+	opts := []option.ClientOption{option.WithCredentialsFile("config/service-account.json")}
 	app, err := firebase.NewApp(context.Background(), nil, opts...)
 	if err != nil {
 		return err
