@@ -241,17 +241,22 @@ func HandleSetTraining(c *gin.Context) {
 			return
 		}
 
+		// clear old schedule
+		if err := clearTraining(payload.DeviceId); err != nil {
+			log.Printf("disableTraining failed the training error: %v", err)
+			c.Status(http.StatusInternalServerError)
+			return
+		}
+
 		// Set training
-		err := setTraining(payload.DeviceId, schedule)
-		if err != nil {
+		if err := setTraining(payload.DeviceId, schedule); err != nil {
 			log.Printf("enableTraining failed the training error: %v", err)
 			c.Status(http.StatusInternalServerError)
 			return
 		}
 	} else {
 		//-- Clear training --//
-		err := clearTraining(payload.DeviceId)
-		if err != nil {
+		if err := clearTraining(payload.DeviceId); err != nil {
 			log.Printf("disableTraining failed the training error: %v", err)
 			c.Status(http.StatusInternalServerError)
 			return
@@ -305,11 +310,6 @@ func setTraining(deviceId string, schedule string) error {
 		deviceIdSchedule := deviceId + DB_DELIM + "trainingSchedule"
 		scheduleDeviceId := schedule + DB_DELIM + deviceId
 
-		// delete old schedule in `trainingSchedules`
-		if err := devices.Delete([]byte(scheduleDeviceId)); err != nil {
-			return err
-		}
-
 		// add new schedule to `trainingSchedules`
 		if err := trainingSchedules.Put([]byte(scheduleDeviceId), []byte("")); err != nil {
 			return err
@@ -335,10 +335,11 @@ func clearTraining(deviceId string) error {
 		deviceIdSchedule := deviceId + DB_DELIM + "trainingSchedule"
 
 		// read old schedule
-		scheduleBytes := devices.Get([]byte(deviceIdSchedule))
+		hhmmwwwwwww := string(devices.Get([]byte(deviceIdSchedule)))
+		oldScheduleKey := hhmmwwwwwww + DB_DELIM + deviceId
 
 		// delete from `trainingSchedules`
-		if err := trainingSchedules.Delete(scheduleBytes); err != nil {
+		if err := trainingSchedules.Delete([]byte(oldScheduleKey)); err != nil {
 			return err
 		}
 
