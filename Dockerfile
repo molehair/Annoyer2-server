@@ -11,7 +11,6 @@ RUN go build -o /go/bin/app
 # final stage
 FROM alpine:latest
 RUN apk --no-cache add ca-certificates
-COPY service-account.json .
 COPY --from=builder /go/bin/app /app
 ENTRYPOINT /app
 LABEL Name=annoyer2server
