@@ -51,3 +51,21 @@ Use FCM
   - ex) Changing training time may incur multiple packets, but the only recent one is required.
   - The timestamp must be generated and sent by client.
   - Save the timestamp in the user's session.
+
+## Build docker image
+
+This instruction is written based on `Docker version 20.10.14, build a224086`, targeting cross-architecture.
+
+1. Check supported architectures.
+
+```bash
+docker buildx ls
+```
+
+If the architecture you want is not shown, install qemu on Linux or Docker desktop on Windows and Mac.
+
+2. Build
+
+```bash
+docker buildx build --platform linux/amd64,linux/arm64,linux/arm/v7 -t molehair/annoyer2server:latest . --push
+```
